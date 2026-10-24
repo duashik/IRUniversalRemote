@@ -39,7 +39,11 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         ir = getSystemService(Context.CONSUMER_IR_SERVICE) as? ConsumerIrManager
         prefs = getSharedPreferences("codes", Context.MODE_PRIVATE)
-        if (!prefs.contains("power")) prefs.edit().putInt("power", 0x08).apply()
+
+        // Power কোড ঠিক করা (পুরনো ভুল 0x08 মুছে 0x12 বসায়)
+        if (!prefs.getBoolean("fix_v2", false)) {
+            prefs.edit().putInt("power", 0x12).putBoolean("fix_v2", true).apply()
+        }
 
         val root = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
@@ -53,7 +57,6 @@ class MainActivity : AppCompatActivity() {
         }
         root.addView(status)
 
-        // স্ক্যান নিয়ন্ত্রণ
         val ctl1 = row()
         ctl1.addView(btn("✔ এটাই") { yes() })
         ctl1.addView(btn("থামান") { stop(); status.text = "থামানো (কমান্ড ${hex(cmd)})" })
@@ -63,7 +66,6 @@ class MainActivity : AppCompatActivity() {
         ctl2.addView(btn("পরের ▶") { next() })
         root.addView(ctl1); root.addView(ctl2)
 
-        // রিমোট বাটন
         for ((k, label) in keys) {
             val r = row()
             r.addView(btn(label, 2f) { send(k) })
